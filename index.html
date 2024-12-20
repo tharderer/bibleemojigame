@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bible Verse Emoji Game (Interact.js Version)</title>
+<title>Bible Verse Emoji Game (Interact.js Revised)</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -141,12 +141,6 @@
     margin-top: 50px;
     font-size: 0.9em;
     color: #777;
-  }
-
-  .dragging {
-    opacity: 0.7;
-    z-index: 999;
-    position: absolute;
   }
 </style>
 </head>
@@ -290,18 +284,26 @@
   }
 
   function setupInteract() {
+    let x = 0, y = 0;
+
     interact('#verseList li')
       .draggable({
         inertia: true,
+        modifiers: [
+          interact.modifiers.restrictRect({
+            restriction: 'parent',
+            endOnly: true
+          })
+        ],
         listeners: {
           start (event) {
-            event.target.classList.add('dragging');
+            const target = event.target;
+            target.classList.add('dragging');
           },
           move (event) {
             const target = event.target;
-            // Update position attributes
-            let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
             target.style.transform = `translate(${x}px, ${y}px)`;
             target.setAttribute('data-x', x);
@@ -311,34 +313,31 @@
             const target = event.target;
             target.classList.remove('dragging');
 
-            // Reset transform
-            target.style.transform = '';
-            target.removeAttribute('data-x');
-            target.removeAttribute('data-y');
-
-            // Determine the best place to insert the item in the list
+            // Determine final insertion position based on event.clientY
+            const dropY = event.clientY;
             const listItems = Array.from(verseList.querySelectorAll('li')).filter(li => li !== target);
-            
-            // Get bounding rect of each item and insert target based on its center point
-            const targetRect = target.getBoundingClientRect();
-            const targetCenterY = targetRect.top + targetRect.height / 2;
 
             let insertBeforeElement = null;
             for (const li of listItems) {
               const rect = li.getBoundingClientRect();
-              // if targetCenterY < this li's center, insert before
               const liCenterY = rect.top + rect.height / 2;
-              if (targetCenterY < liCenterY) {
+              if (dropY < liCenterY) {
                 insertBeforeElement = li;
                 break;
               }
             }
 
+            // Insert item
             if (insertBeforeElement) {
               verseList.insertBefore(target, insertBeforeElement);
             } else {
               verseList.appendChild(target);
             }
+
+            // Reset transform
+            target.style.transform = '';
+            target.removeAttribute('data-x');
+            target.removeAttribute('data-y');
 
             checkOrder();
           }
