@@ -252,14 +252,13 @@
         listeners: {
           start(event) {
             event.target.classList.add('dragging');
+            event.target.initialY = event.clientY;
           },
           move(event) {
             const target = event.target;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            const deltaY = event.clientY - target.initialY;
 
-            // Move the element vertically only
-            target.style.transform = `translateY(${y}px)`;
-            target.setAttribute('data-y', y);
+            target.style.transform = `translateY(${deltaY}px)`;
 
             const listItems = Array.from(verseList.querySelectorAll('li'));
             listItems.forEach((li) => {
@@ -271,11 +270,10 @@
             });
           },
           end(event) {
-            event.target.classList.remove('dragging');
-
-            // Reset transform and position
-            event.target.style.transform = '';
-            event.target.removeAttribute('data-y');
+            const target = event.target;
+            target.classList.remove('dragging');
+            target.style.transform = '';
+            target.initialY = 0;
             checkOrder();
           }
         }
