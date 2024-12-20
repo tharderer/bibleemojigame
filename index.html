@@ -55,7 +55,6 @@
     touch-action: none;
     user-select: none;
     position: relative;
-    will-change: transform;
     cursor: grab;
   }
   .verse-container li:active {
@@ -78,27 +77,6 @@
     margin-top: 20px;
     font-weight: bold;
   }
-  .timer-container {
-    text-align: center;
-    margin-top: 20px;
-  }
-  .timer-container span {
-    font-weight: bold;
-    font-size: 1.2em;
-  }
-  .leaderboard-container {
-    text-align: center;
-    margin-top: 40px;
-  }
-  .leaderboard-container h3 {
-    margin-bottom: 10px;
-  }
-  .leaderboard-container ol {
-    padding-left: 20px;
-    text-align: left;
-    max-width: 300px;
-    margin: 0 auto;
-  }
 </style>
 </head>
 <body>
@@ -112,20 +90,11 @@
   <button class="btn" id="startBtn">Start</button>
 </section>
 
-<section class="timer-container">
-  <p>Time: <span id="timer">00:00</span></p>
-</section>
-
 <section class="verse-container">
   <ul id="verseList"></ul>
 </section>
 
 <div id="result"></div>
-
-<section class="leaderboard-container">
-  <h3>Leaderboard (Top 5 Times)</h3>
-  <ol id="leaderboard"></ol>
-</section>
 
 <footer>
   <p>&copy; 2024 Bible Emoji Game</p>
@@ -149,16 +118,12 @@
   const verseList = document.getElementById('verseList');
   const startBtn = document.getElementById('startBtn');
   const result = document.getElementById('result');
-  const timerEl = document.getElementById('timer');
-  const leaderboardEl = document.getElementById('leaderboard');
 
   startBtn.addEventListener('click', startGame);
 
   function startGame() {
     result.textContent = '';
     isSolved = false;
-    clearInterval(timerInterval);
-    timerEl.textContent = "00:00";
 
     let scrambled;
     do {
@@ -173,8 +138,6 @@
       verseList.appendChild(li);
     });
 
-    startTime = Date.now();
-    startTimer();
     setupInteract();
   }
 
@@ -187,29 +150,12 @@
 
   function checkOrder() {
     if (isSolved) return;
-    const items = verseList.querySelectorAll('li');
-    const currentOrder = Array.from(items).map(li => li.textContent.trim());
 
-    for (let i = 0; i < correctOrder.length; i++) {
-      if (currentOrder[i] !== correctOrder[i]) {
-        return;
-      }
+    const items = Array.from(verseList.querySelectorAll('li')).map(li => li.textContent.trim());
+    if (JSON.stringify(items) === JSON.stringify(correctOrder)) {
+      result.textContent = 'Correct!';
+      isSolved = true;
     }
-
-    const endTime = Date.now();
-    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-    result.textContent = `Correct! You solved it in ${timeTaken} seconds.`;
-    isSolved = true;
-    clearInterval(timerInterval);
-  }
-
-  function startTimer() {
-    timerInterval = setInterval(() => {
-      const elapsed = Math.floor((Date.now() - startTime) / 1000);
-      const minutes = String(Math.floor(elapsed / 60)).padStart(2, '0');
-      const seconds = String(elapsed % 60).padStart(2, '0');
-      timerEl.textContent = `${minutes}:${seconds}`;
-    }, 1000);
   }
 
   function setupInteract() {
@@ -219,60 +165,33 @@
         modifiers: [
           interact.modifiers.restrictRect({
             restriction: 'parent',
-            endOnly: true,
-          }),
-          interact.modifiers.snap({
-            targets: [interact.createSnapGrid({ x: 0, y: 50 })],
-            range: Infinity,
-          }),
+            endOnly: true
+          })
         ],
         listeners: {
           start(event) {
-            event.target.classList.add('dragging');
+            const target = event.target;
+            target.classList.add('dragging');
           },
           move(event) {
             const target = event.target;
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            const listItems = Array.from(verseList.querySelectorAll('li'));
+            const y = event.clientY;
 
-            target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            target.setAttribute('data-x', x);
-            target.setAttribute('data-y', y);
+            listItems.forEach((li, index) => {
+              const rect = li.getBoundingClientRect();
+              if (target !== li && y > rect.top && y < rect.bottom) {
+                const targetIndex = listItems.indexOf(target);
+                const insertBefore = index < targetIndex ? li.nextSibling : li;
+                verseList.insertBefore(target, insertBefore);
+              }
+            });
           },
           end(event) {
-            const target = event.target;
-            target.classList.remove('dragging');
-
-            target.style.transform = '';
-            target.removeAttribute('data-x');
-            target.removeAttribute('data-y');
-
-            const dropY = event.clientY;
-            const listItems = Array.from(verseList.querySelectorAll('li')).filter(li => li !== target);
-
-            let insertBeforeElement = null;
-            for (const li of listItems) {
-              const rect = li.getBoundingClientRect();
-              const liCenterY = rect.top + rect.height / 2;
-              if (dropY < liCenterY) {
-                insertBeforeElement = li;
-                break;
-              }
-            }
-
-            if (!insertBeforeElement) {
-              insertBeforeElement = listItems[0] || null;
-            }
-
-            if (insertBeforeElement) {
-              verseList.insertBefore(target, insertBeforeElement);
-            } else {
-              verseList.appendChild(target);
-            }
-
+            event.target.classList.remove('dragging');
             checkOrder();
-          },
-        },
+          }
+        }
       });
   }
 </script>
