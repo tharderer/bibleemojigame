@@ -2,14 +2,14 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bible Verse Emoji Game (Interact.js Revised)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Bible Verse Emoji Game (Optimized)</title>
 <style>
   body {
     font-family: Arial, sans-serif;
-    margin: 0; 
-    padding: 0; 
-    background: #fafafa; 
+    margin: 0;
+    padding: 0;
+    background: #fafafa;
     color: #333;
   }
   header, section, footer {
@@ -55,6 +55,7 @@
     touch-action: none;
     user-select: none;
     position: relative;
+    will-change: transform; /* Optimize for frequent transform changes */
   }
   .btn {
     background: #007BFF;
@@ -68,13 +69,11 @@
   .btn:hover {
     background: #0056b3;
   }
-
   #result {
     text-align: center;
     margin-top: 20px;
     font-weight: bold;
   }
-
   .timer-container {
     text-align: center;
     margin-top: 20px;
@@ -83,7 +82,6 @@
     font-weight: bold;
     font-size: 1.2em;
   }
-
   .leaderboard-container {
     text-align: center;
     margin-top: 40px;
@@ -97,7 +95,6 @@
     max-width: 300px;
     margin: 0 auto;
   }
-
   .value-prop {
     margin-top: 40px;
     text-align: center;
@@ -109,7 +106,6 @@
   .value-prop li {
     margin: 10px 0;
   }
-
   .email-signup {
     margin-top: 40px;
     text-align: center;
@@ -135,7 +131,6 @@
   .email-signup input[type="submit"]:hover {
     background: #218838;
   }
-
   footer {
     text-align: center;
     margin-top: 50px;
@@ -181,7 +176,6 @@
 
 <section class="email-signup">
   <h2>Stay Updated with New Puzzles!</h2>
-  <!-- Replace action="#" with your email service endpoint -->
   <form action="#" method="POST">
     <input type="email" name="email" placeholder="Enter your email" required /><br>
     <input type="submit" value="Subscribe Now" />
@@ -220,13 +214,11 @@
   fetchLeaderboard();
 
   function startGame() {
-    // Reset
     result.textContent = '';
     isSolved = false;
     clearInterval(timerInterval);
     timerEl.textContent = "00:00";
 
-    // Create a derangement: no line is in its original position.
     let scrambled;
     do {
       scrambled = [...correctOrder];
@@ -259,18 +251,16 @@
 
     for (let i = 0; i < correctOrder.length; i++) {
       if (currentOrder[i] !== correctOrder[i]) {
-        return; // Not correct yet
+        return;
       }
     }
 
-    // If we get here, puzzle is solved
     const endTime = Date.now();
     const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
     result.textContent = `Correct! You solved it in ${timeTaken} seconds.`;
     isSolved = true;
     clearInterval(timerInterval);
 
-    // Update remote leaderboard
     postTimeToLeaderboard(timeTaken);
   }
 
@@ -284,36 +274,39 @@
   }
 
   function setupInteract() {
-    let x = 0, y = 0;
-
     interact('#verseList li')
       .draggable({
-        inertia: true,
+        inertia: false,
         modifiers: [
           interact.modifiers.restrictRect({
             restriction: 'parent',
             endOnly: true
+          }),
+          interact.modifiers.snap({
+            targets: [interact.createSnapGrid({ x: 0, y: 50 })],
+            range: Infinity
           })
         ],
         listeners: {
-          start (event) {
-            const target = event.target;
-            target.classList.add('dragging');
+          start(event) {
+            event.target.classList.add('dragging');
           },
-          move (event) {
+          move(event) {
             const target = event.target;
-            x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
-            y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
             target.setAttribute('data-x', x);
             target.setAttribute('data-y', y);
           },
-          end (event) {
+          end(event) {
             const target = event.target;
             target.classList.remove('dragging');
+            target.style.transform = '';
+            target.removeAttribute('data-x');
+            target.removeAttribute('data-y');
 
-            // Determine final insertion position based on event.clientY
             const dropY = event.clientY;
             const listItems = Array.from(verseList.querySelectorAll('li')).filter(li => li !== target);
 
@@ -327,17 +320,11 @@
               }
             }
 
-            // Insert item
             if (insertBeforeElement) {
               verseList.insertBefore(target, insertBeforeElement);
             } else {
               verseList.appendChild(target);
             }
-
-            // Reset transform
-            target.style.transform = '';
-            target.removeAttribute('data-x');
-            target.removeAttribute('data-y');
 
             checkOrder();
           }
@@ -345,12 +332,9 @@
       });
   }
 
-  // Remote Leaderboard functions
   async function fetchLeaderboard() {
     try {
-      const response = await fetch('https://example.com/leaderboard', {
-        method: 'GET'
-      });
+      const response = await fetch('https://example.com/leaderboard', { method: 'GET' });
       if (!response.ok) throw new Error('Network response was not ok');
       const times = await response.json();
       updateLeaderboardDisplay(times);
@@ -368,7 +352,6 @@
         body: JSON.stringify({ time: Number(timeTaken) })
       });
       if (!response.ok) throw new Error('Network response was not ok');
-      // After posting time, fetch updated leaderboard
       await fetchLeaderboard();
     } catch (error) {
       console.error('Error posting time:', error);
@@ -382,7 +365,7 @@
       li.textContent = 'No times yet.';
       leaderboardEl.appendChild(li);
     } else {
-      const topFive = times.slice(0,5);
+      const topFive = times.slice(0, 5);
       topFive.forEach(time => {
         const li = document.createElement('li');
         li.textContent = `${time} seconds`;
