@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bible Verse Emoji Game (Optimized)</title>
+<title>Bible Verse Emoji Game</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -39,7 +39,7 @@
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
   .verse-container ul {
     list-style: none;
@@ -55,7 +55,10 @@
     touch-action: none;
     user-select: none;
     position: relative;
-    will-change: transform; /* Optimize for frequent transform changes */
+    cursor: grab;
+  }
+  .verse-container li:active {
+    cursor: grabbing;
   }
   .btn {
     background: #007BFF;
@@ -95,17 +98,6 @@
     max-width: 300px;
     margin: 0 auto;
   }
-  .value-prop {
-    margin-top: 40px;
-    text-align: center;
-  }
-  .value-prop ul {
-    list-style: none;
-    padding: 0;
-  }
-  .value-prop li {
-    margin: 10px 0;
-  }
   .email-signup {
     margin-top: 40px;
     text-align: center;
@@ -130,12 +122,6 @@
   }
   .email-signup input[type="submit"]:hover {
     background: #218838;
-  }
-  footer {
-    text-align: center;
-    margin-top: 50px;
-    font-size: 0.9em;
-    color: #777;
   }
 </style>
 </head>
@@ -163,15 +149,6 @@
 <section class="leaderboard-container">
   <h3>Leaderboard (Top 5 Times)</h3>
   <ol id="leaderboard"></ol>
-</section>
-
-<section class="value-prop">
-  <h2>Why Sign Up?</h2>
-  <ul>
-    <li>🗓 Receive a new emoji puzzle daily</li>
-    <li>📖 Deepen your understanding of Scripture in a fun way</li>
-    <li>🤝 Join a community of faith-filled puzzle solvers</li>
-  </ul>
 </section>
 
 <section class="email-signup">
@@ -210,9 +187,6 @@
 
   startBtn.addEventListener('click', startGame);
 
-  // Fetch leaderboard on load
-  fetchLeaderboard();
-
   function startGame() {
     result.textContent = '';
     isSolved = false;
@@ -246,22 +220,14 @@
 
   function checkOrder() {
     if (isSolved) return;
-    const items = verseList.querySelectorAll('li');
-    const currentOrder = Array.from(items).map(li => li.textContent.trim());
-
-    for (let i = 0; i < correctOrder.length; i++) {
-      if (currentOrder[i] !== correctOrder[i]) {
-        return;
-      }
+    const items = Array.from(verseList.querySelectorAll('li')).map(li => li.textContent.trim());
+    if (JSON.stringify(items) === JSON.stringify(correctOrder)) {
+      const timeTaken = ((Date.now() - startTime) / 1000).toFixed(2);
+      result.textContent = `Correct! You solved it in ${timeTaken} seconds.`;
+      isSolved = true;
+      clearInterval(timerInterval);
+      postTimeToLeaderboard(timeTaken);
     }
-
-    const endTime = Date.now();
-    const timeTaken = ((endTime - startTime) / 1000).toFixed(2);
-    result.textContent = `Correct! You solved it in ${timeTaken} seconds.`;
-    isSolved = true;
-    clearInterval(timerInterval);
-
-    postTimeToLeaderboard(timeTaken);
   }
 
   function startTimer() {
@@ -281,10 +247,6 @@
           interact.modifiers.restrictRect({
             restriction: 'parent',
             endOnly: true
-          }),
-          interact.modifiers.snap({
-            targets: [interact.createSnapGrid({ x: 0, y: 50 })],
-            range: Infinity
           })
         ],
         listeners: {
@@ -293,39 +255,27 @@
           },
           move(event) {
             const target = event.target;
-            const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
             const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            target.style.transform = `translate3d(${x}px, ${y}px, 0)`;
-            target.setAttribute('data-x', x);
+            // Move the element vertically only
+            target.style.transform = `translateY(${y}px)`;
             target.setAttribute('data-y', y);
+
+            const listItems = Array.from(verseList.querySelectorAll('li'));
+            listItems.forEach((li) => {
+              const rect = li.getBoundingClientRect();
+              if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
+                const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
+                verseList.insertBefore(target, referenceNode);
+              }
+            });
           },
           end(event) {
-            const target = event.target;
-            target.classList.remove('dragging');
-            target.style.transform = '';
-            target.removeAttribute('data-x');
-            target.removeAttribute('data-y');
+            event.target.classList.remove('dragging');
 
-            const dropY = event.clientY;
-            const listItems = Array.from(verseList.querySelectorAll('li')).filter(li => li !== target);
-
-            let insertBeforeElement = null;
-            for (const li of listItems) {
-              const rect = li.getBoundingClientRect();
-              const liCenterY = rect.top + rect.height / 2;
-              if (dropY < liCenterY) {
-                insertBeforeElement = li;
-                break;
-              }
-            }
-
-            if (insertBeforeElement) {
-              verseList.insertBefore(target, insertBeforeElement);
-            } else {
-              verseList.appendChild(target);
-            }
-
+            // Reset transform and position
+            event.target.style.transform = '';
+            event.target.removeAttribute('data-y');
             checkOrder();
           }
         }
@@ -373,6 +323,8 @@
       });
     }
   }
+
+  fetchLeaderboard();
 </script>
 
 </body>
