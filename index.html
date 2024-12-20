@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Bible Verse Emoji Game (Fixed for PC and Mobile)</title>
+<title>Bible Verse Emoji Game</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -39,7 +39,7 @@
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
-    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
   }
   .verse-container ul {
     list-style: none;
@@ -52,7 +52,7 @@
     margin: 5px 0;
     padding: 10px;
     border-radius: 4px;
-    touch-action: none; /* Enable pointer events for all platforms */
+    touch-action: none;
     user-select: none;
     position: relative;
     will-change: transform;
@@ -219,12 +219,12 @@
         modifiers: [
           interact.modifiers.restrictRect({
             restriction: 'parent',
-            endOnly: true
+            endOnly: true,
           }),
           interact.modifiers.snap({
             targets: [interact.createSnapGrid({ x: 0, y: 50 })],
-            range: Infinity
-          })
+            range: Infinity,
+          }),
         ],
         listeners: {
           start(event) {
@@ -242,6 +242,7 @@
           end(event) {
             const target = event.target;
             target.classList.remove('dragging');
+
             target.style.transform = '';
             target.removeAttribute('data-x');
             target.removeAttribute('data-y');
@@ -259,6 +260,10 @@
               }
             }
 
+            if (!insertBeforeElement) {
+              insertBeforeElement = listItems[0] || null;
+            }
+
             if (insertBeforeElement) {
               verseList.insertBefore(target, insertBeforeElement);
             } else {
@@ -266,8 +271,8 @@
             }
 
             checkOrder();
-          }
-        }
+          },
+        },
       });
   }
 </script>
