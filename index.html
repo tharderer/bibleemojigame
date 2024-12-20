@@ -252,15 +252,14 @@
         listeners: {
           start(event) {
             event.target.classList.add('dragging');
+            event.target.initialY = event.clientY;
           },
           move(event) {
             const target = event.target;
-            const currentY = parseFloat(target.getAttribute('data-y')) || 0;
-            const newY = currentY + event.dy;
+            const deltaY = event.clientY - target.initialY;
 
-            // Update the transform to follow the finger
-            target.style.transform = `translateY(${newY}px)`;
-            target.setAttribute('data-y', newY);
+            // Update position directly to prevent drift
+            target.style.transform = `translateY(${deltaY}px)`;
 
             const listItems = Array.from(verseList.querySelectorAll('li'));
             listItems.forEach((li) => {
@@ -268,6 +267,7 @@
               if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
                 const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
                 verseList.insertBefore(target, referenceNode);
+                target.initialY = event.clientY; // Reset initial position after rearranging
               }
             });
           },
@@ -275,7 +275,7 @@
             const target = event.target;
             target.classList.remove('dragging');
             target.style.transform = '';
-            target.removeAttribute('data-y');
+            delete target.initialY;
             checkOrder();
           }
         }
