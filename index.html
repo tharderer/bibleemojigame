@@ -166,12 +166,15 @@
           interact.modifiers.restrictRect({
             restriction: 'parent',
             endOnly: true
+          }),
+          interact.modifiers.restrict({
+            restriction: { x: 0, y: Infinity }, // Locks the drag movement vertically
+            endOnly: false
           })
         ],
         listeners: {
           start(event) {
-            const target = event.target;
-            target.classList.add('dragging');
+            event.target.classList.add('dragging');
           },
           move(event) {
             const target = event.target;
