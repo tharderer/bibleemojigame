@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Bible Verse Emoji Game</title>
+<title>Bible Verse Emoji Game (Interact.js Version)</title>
 <style>
   body {
     font-family: Arial, sans-serif;
@@ -44,16 +44,17 @@
   .verse-container ul {
     list-style: none;
     padding: 0;
+    margin: 0;
+    position: relative;
   }
   .verse-container li {
     background: #eee;
     margin: 5px 0;
     padding: 10px;
-    cursor: move;
     border-radius: 4px;
-  }
-  .verse-container li {
     touch-action: none;
+    user-select: none;
+    position: relative;
   }
   .btn {
     background: #007BFF;
@@ -142,8 +143,10 @@
     color: #777;
   }
 
-  .over {
-    border: 2px dashed #333;
+  .dragging {
+    opacity: 0.7;
+    z-index: 999;
+    position: absolute;
   }
 </style>
 </head>
@@ -196,9 +199,8 @@
   <p>&copy; 2024 Bible Emoji Game</p>
 </footer>
 
-<!-- Mobile Drag-and-Drop Polyfill from CDN -->
-<script src="https://unpkg.com/mobile-drag-drop/default-polyfill.js"></script>
-
+<!-- Interact.js from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script>
   const correctOrder = [
     "for 🙏 so 💓 the 🌍,",
@@ -237,27 +239,16 @@
       scrambled.sort(() => Math.random() - 0.5);
     } while (!isDerangement(scrambled));
 
-    // Populate list
     verseList.innerHTML = '';
     scrambled.forEach((line) => {
       const li = document.createElement('li');
       li.textContent = line;
-      li.setAttribute('draggable', 'true');
       verseList.appendChild(li);
-
-      // Add drag events
-      li.addEventListener('dragstart', dragStart);
-      li.addEventListener('dragover', dragOver);
-      li.addEventListener('drop', drop);
-      li.addEventListener('dragenter', dragEnter);
-      li.addEventListener('dragleave', dragLeave);
-      // 'dragend' handled on verseList to clean up
     });
-
-    verseList.addEventListener('dragend', dragEnd);
 
     startTime = Date.now();
     startTimer();
+    setupInteract();
   }
 
   function isDerangement(arr) {
@@ -265,55 +256,6 @@
       if (arr[i] === correctOrder[i]) return false;
     }
     return true;
-  }
-
-  let draggedItem = null;
-
-  function dragStart(e) {
-    draggedItem = e.target;
-    setTimeout(() => {
-      e.target.style.opacity = '0.4';
-    }, 0);
-  }
-
-  function dragOver(e) {
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'move';
-  }
-
-  function drop(e) {
-    e.preventDefault();
-    if (draggedItem && e.target.tagName === 'LI' && e.target !== draggedItem) {
-      const items = Array.from(verseList.children);
-      const draggedIndex = items.indexOf(draggedItem);
-      const targetIndex = items.indexOf(e.target);
-
-      if (draggedIndex < targetIndex) {
-        verseList.insertBefore(draggedItem, e.target.nextSibling);
-      } else {
-        verseList.insertBefore(draggedItem, e.target);
-      }
-
-      checkOrder();
-    }
-  }
-
-  function dragEnter(e) {
-    if (e.target.tagName === 'LI') {
-      e.target.classList.add('over');
-    }
-  }
-
-  function dragLeave(e) {
-    if (e.target.tagName === 'LI') {
-      e.target.classList.remove('over');
-    }
-  }
-
-  function dragEnd(e) {
-    e.target.style.opacity = '1';
-    const items = verseList.querySelectorAll('li.over');
-    items.forEach(i => i.classList.remove('over'));
   }
 
   function checkOrder() {
@@ -345,6 +287,63 @@
       const seconds = String(elapsed % 60).padStart(2, '0');
       timerEl.textContent = `${minutes}:${seconds}`;
     }, 1000);
+  }
+
+  function setupInteract() {
+    interact('#verseList li')
+      .draggable({
+        inertia: true,
+        listeners: {
+          start (event) {
+            event.target.classList.add('dragging');
+          },
+          move (event) {
+            const target = event.target;
+            // Update position attributes
+            let x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+            let y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+            target.style.transform = `translate(${x}px, ${y}px)`;
+            target.setAttribute('data-x', x);
+            target.setAttribute('data-y', y);
+          },
+          end (event) {
+            const target = event.target;
+            target.classList.remove('dragging');
+
+            // Reset transform
+            target.style.transform = '';
+            target.removeAttribute('data-x');
+            target.removeAttribute('data-y');
+
+            // Determine the best place to insert the item in the list
+            const listItems = Array.from(verseList.querySelectorAll('li')).filter(li => li !== target);
+            
+            // Get bounding rect of each item and insert target based on its center point
+            const targetRect = target.getBoundingClientRect();
+            const targetCenterY = targetRect.top + targetRect.height / 2;
+
+            let insertBeforeElement = null;
+            for (const li of listItems) {
+              const rect = li.getBoundingClientRect();
+              // if targetCenterY < this li's center, insert before
+              const liCenterY = rect.top + rect.height / 2;
+              if (targetCenterY < liCenterY) {
+                insertBeforeElement = li;
+                break;
+              }
+            }
+
+            if (insertBeforeElement) {
+              verseList.insertBefore(target, insertBeforeElement);
+            } else {
+              verseList.appendChild(target);
+            }
+
+            checkOrder();
+          }
+        }
+      });
   }
 
   // Remote Leaderboard functions
