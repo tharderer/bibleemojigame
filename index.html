@@ -252,13 +252,15 @@
         listeners: {
           start(event) {
             event.target.classList.add('dragging');
-            event.target.initialY = event.clientY;
           },
           move(event) {
             const target = event.target;
-            const deltaY = event.clientY - target.initialY;
+            const currentY = parseFloat(target.getAttribute('data-y')) || 0;
+            const newY = currentY + event.dy;
 
-            target.style.transform = `translateY(${deltaY}px)`;
+            // Update the transform to follow the finger
+            target.style.transform = `translateY(${newY}px)`;
+            target.setAttribute('data-y', newY);
 
             const listItems = Array.from(verseList.querySelectorAll('li'));
             listItems.forEach((li) => {
@@ -273,7 +275,7 @@
             const target = event.target;
             target.classList.remove('dragging');
             target.style.transform = '';
-            target.initialY = 0;
+            target.removeAttribute('data-y');
             checkOrder();
           }
         }
