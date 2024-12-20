@@ -166,10 +166,6 @@
           interact.modifiers.restrictRect({
             restriction: 'parent',
             endOnly: true
-          }),
-          interact.modifiers.restrict({
-            restriction: { x: 0, y: Infinity }, // Locks the drag movement vertically
-            endOnly: false
           })
         ],
         listeners: {
@@ -178,20 +174,27 @@
           },
           move(event) {
             const target = event.target;
-            const listItems = Array.from(verseList.querySelectorAll('li'));
-            const y = event.clientY;
+            const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-            listItems.forEach((li, index) => {
+            // Move the element vertically only
+            target.style.transform = `translateY(${y}px)`;
+            target.setAttribute('data-y', y);
+
+            const listItems = Array.from(verseList.querySelectorAll('li'));
+            listItems.forEach((li) => {
               const rect = li.getBoundingClientRect();
-              if (target !== li && y > rect.top && y < rect.bottom) {
-                const targetIndex = listItems.indexOf(target);
-                const insertBefore = index < targetIndex ? li.nextSibling : li;
-                verseList.insertBefore(target, insertBefore);
+              if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
+                const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
+                verseList.insertBefore(target, referenceNode);
               }
             });
           },
           end(event) {
             event.target.classList.remove('dragging');
+
+            // Reset transform and position
+            event.target.style.transform = '';
+            event.target.removeAttribute('data-y');
             checkOrder();
           }
         }
