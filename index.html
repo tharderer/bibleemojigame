@@ -76,6 +76,7 @@
     cursor: grab;
     user-select: none;
     text-align: center;
+    touch-action: none;
   }
   .draggable.dragging {
     opacity: 0.7;
@@ -128,10 +129,6 @@
   </div>
 </section>
 
-<section class="controls hidden" id="resetControl">
-  <button class="btn" id="resetBtn">Reset Game</button>
-</section>
-
 <section class="completion-container hidden" id="completionScreen">
   <h2>Congratulations!</h2>
   <p id="finalTime"></p>
@@ -150,13 +147,11 @@
   ];
 
   const startBtn = document.getElementById('startBtn');
-  const resetBtn = document.getElementById('resetBtn');
   const scrambleBox = document.getElementById('scrambleBox');
   const unscrambleBox = document.getElementById('unscrambleBox');
   const timerDisplay = document.getElementById('timer');
   const gameArea = document.getElementById('gameArea');
   const startScreen = document.getElementById('startScreen');
-  const resetControl = document.getElementById('resetControl');
   const completionScreen = document.getElementById('completionScreen');
   const finalTime = document.getElementById('finalTime');
   const correctVerse = document.getElementById('correctVerse');
@@ -166,7 +161,6 @@
   let timerInterval;
 
   startBtn.addEventListener('click', startGame);
-  resetBtn.addEventListener('click', resetGame);
   playAgainBtn.addEventListener('click', resetGame);
 
   function startGame() {
@@ -174,7 +168,6 @@
     startScreen.classList.add('hidden');
     gameArea.classList.remove('hidden');
     timerDisplay.classList.remove('hidden');
-    resetControl.classList.remove('hidden');
 
     timerInterval = setInterval(() => {
       timer++;
@@ -270,7 +263,6 @@
   function showCompletionScreen() {
     gameArea.classList.add('hidden');
     timerDisplay.classList.add('hidden');
-    resetControl.classList.add('hidden');
     completionScreen.classList.remove('hidden');
 
     finalTime.textContent = `You solved the puzzle in ${timer} seconds!`;
@@ -284,6 +276,9 @@
 
   function resetGame() {
     initializeGame();
+    completionScreen.classList.add('hidden');
+    gameArea.classList.remove('hidden');
+    timerDisplay.classList.remove('hidden');
   }
 </script>
 
