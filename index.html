@@ -153,7 +153,7 @@
       updateTimer();
     }, 1000);
 
-    const scrambledOrder = [...correctOrder].sort(() => Math.random() - 0.5);
+    const scrambledOrder = shuffleWithoutCorrectPositions([...correctOrder]);
 
     verseList.innerHTML = '';
     scrambledOrder.forEach((line) => {
@@ -168,6 +168,15 @@
     });
 
     setupButtons();
+  }
+
+  function shuffleWithoutCorrectPositions(array) {
+    let isDeranged;
+    do {
+      array.sort(() => Math.random() - 0.5);
+      isDeranged = array.every((line, index) => line !== correctOrder[index]);
+    } while (!isDeranged);
+    return array;
   }
 
   function setupButtons() {
