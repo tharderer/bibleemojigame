@@ -50,11 +50,10 @@ function initializeGame() {
     const div = document.createElement('div');
     div.classList.add('draggable');
     div.textContent = line;
-    div.draggable = true;
     scrambleBox.appendChild(div);
   });
 
-  setupDragAndDrop();
+  setupInteractDrag();
 }
 
 function shuffleWithoutCorrectPositions(array) {
@@ -66,43 +65,41 @@ function shuffleWithoutCorrectPositions(array) {
   return array;
 }
 
-function setupDragAndDrop() {
-  const draggables = document.querySelectorAll('.draggable');
-  const slots = document.querySelectorAll('.slot');
+function setupInteractDrag() {
+  interact('.draggable').draggable({
+    inertia: true,
+    listeners: {
+      start(event) {
+        event.target.classList.add('dragging');
+      },
+      move(event) {
+        const target = event.target;
+        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
 
-  draggables.forEach((draggable) => {
-    draggable.addEventListener('dragstart', (e) => {
-      draggable.classList.add('dragging');
-      e.dataTransfer.setData('text/plain', draggable.textContent);
-    });
-
-    draggable.addEventListener('dragend', () => {
-      draggable.classList.remove('dragging');
-    });
-  });
-
-  slots.forEach((slot) => {
-    slot.addEventListener('dragover', (e) => {
-      e.preventDefault();
-    });
-
-    slot.addEventListener('drop', (e) => {
-      const draggingElement = document.querySelector('.dragging');
-      if (draggingElement) {
-        slot.appendChild(draggingElement);
-        checkOrder();
+        target.style.transform = `translate(${x}px, ${y}px)`;
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+      },
+      end(event) {
+        event.target.classList.remove('dragging');
       }
-    });
+    }
   });
 
-  scrambleBox.addEventListener('dragover', (e) => {
-    e.preventDefault();
-  });
+  interact('.slot').dropzone({
+    accept: '.draggable',
+    overlap: 0.5,
+    ondrop(event) {
+      const draggableElement = event.relatedTarget;
+      const dropzoneElement = event.target;
 
-  scrambleBox.addEventListener('drop', (e) => {
-    const draggingElement = document.querySelector('.dragging');
-    if (draggingElement) {
-      scrambleBox.appendChild(draggingElement);
+      dropzoneElement.appendChild(draggableElement);
+      draggableElement.style.transform = 'none';
+      draggableElement.removeAttribute('data-x');
+      draggableElement.removeAttribute('data-y');
+
+      checkOrder();
     }
   });
 }
