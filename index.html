@@ -56,12 +56,13 @@
     user-select: none;
     position: relative;
     cursor: grab;
+    transition: transform 0.1s;
   }
   .verse-container li.dragging {
     z-index: 1000;
-    opacity: 0.8;
-    transform: scale(1.05);
+    opacity: 0.9;
     position: absolute;
+    transform: scale(1.05);
   }
   .btn {
     background: #007BFF;
@@ -258,7 +259,6 @@
           start(event) {
             const target = event.target;
             target.classList.add('dragging');
-            target.style.zIndex = '1000';
             const rect = target.getBoundingClientRect();
             offsetY = event.clientY - rect.top;
           },
@@ -267,10 +267,8 @@
             const listItems = Array.from(verseList.querySelectorAll('li'));
             const topPosition = event.clientY - offsetY;
 
-            // Move the element visually
-            target.style.transform = `translateY(${topPosition - target.offsetTop}px)`;
+            target.style.top = `${topPosition}px`;
 
-            // Reorder elements dynamically
             listItems.forEach((li) => {
               const rect = li.getBoundingClientRect();
               if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
@@ -283,7 +281,7 @@
             const target = event.target;
             target.classList.remove('dragging');
             target.style.transform = '';
-            target.style.zIndex = '';
+            target.style.top = '';
             checkOrder();
           }
         }
