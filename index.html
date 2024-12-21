@@ -170,6 +170,7 @@
   playAgainBtn.addEventListener('click', resetGame);
 
   function startGame() {
+    resetGame(); // Ensure a fresh state every time
     startScreen.classList.add('hidden');
     gameArea.classList.remove('hidden');
     timerDisplay.classList.remove('hidden');
@@ -211,8 +212,9 @@
     const slots = document.querySelectorAll('.slot');
 
     draggables.forEach((draggable) => {
-      draggable.addEventListener('dragstart', () => {
+      draggable.addEventListener('dragstart', (e) => {
         draggable.classList.add('dragging');
+        e.dataTransfer.setData('text/plain', draggable.textContent);
       });
 
       draggable.addEventListener('dragend', () => {
@@ -283,6 +285,10 @@
     gameArea.classList.add('hidden');
     resetControl.classList.add('hidden');
     startScreen.classList.remove('hidden');
+    scrambleBox.innerHTML = '';
+    unscrambleBox.querySelectorAll('.slot').forEach((slot) => {
+      slot.innerHTML = '';
+    });
   }
 </script>
 
