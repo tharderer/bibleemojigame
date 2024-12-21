@@ -56,9 +56,14 @@
     user-select: none;
     position: relative;
     cursor: grab;
+    transition: transform 0.1s ease;
   }
   .verse-container li:active {
     cursor: grabbing;
+  }
+  .dragging {
+    z-index: 1000;
+    position: relative;
   }
   .btn {
     background: #007BFF;
@@ -253,83 +258,8 @@
         ],
         listeners: {
           start(event) {
-            event.target.classList.add('dragging');
-            const rect = event.target.getBoundingClientRect();
-            offsetY = event.clientY - rect.top;
-          },
-          move(event) {
             const target = event.target;
-            const listItems = Array.from(verseList.querySelectorAll('li'));
-            const topPosition = event.clientY - offsetY;
-
-            // Smooth movement with minimal reflows
-            requestAnimationFrame(() => {
-              target.style.transform = `translateY(${topPosition - target.offsetTop}px)`;
-
-              // Determine position to rearrange
-              listItems.forEach((li) => {
-                const rect = li.getBoundingClientRect();
-                if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
-                  const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
-                  verseList.insertBefore(target, referenceNode);
-                }
-              });
-            });
-          },
-          end(event) {
-            const target = event.target;
-            target.classList.remove('dragging');
-            target.style.transform = '';
-            checkOrder();
-          }
-        }
-      });
-  }
-
-  async function fetchLeaderboard() {
-    try {
-      const response = await fetch('https://example.com/leaderboard', { method: 'GET' });
-      if (!response.ok) throw new Error('Network response was not ok');
-      const times = await response.json();
-      updateLeaderboardDisplay(times);
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error);
-      leaderboardEl.innerHTML = '<li>Unable to load leaderboard.</li>';
-    }
-  }
-
-  async function postTimeToLeaderboard(timeTaken) {
-    try {
-      const response = await fetch('https://example.com/leaderboard', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ time: Number(timeTaken) })
-      });
-      if (!response.ok) throw new Error('Network response was not ok');
-      await fetchLeaderboard();
-    } catch (error) {
-      console.error('Error posting time:', error);
-    }
-  }
-
-  function updateLeaderboardDisplay(times) {
-    leaderboardEl.innerHTML = '';
-    if (!times || times.length === 0) {
-      const li = document.createElement('li');
-      li.textContent = 'No times yet.';
-      leaderboardEl.appendChild(li);
-    } else {
-      const topFive = times.slice(0, 5);
-      topFive.forEach(time => {
-        const li = document.createElement('li');
-        li.textContent = `${time} seconds`;
-        leaderboardEl.appendChild(li);
-      });
-    }
-  }
-
-  fetchLeaderboard();
-</script>
-
-</body>
-</html>
+            target.classList.add('dragging');
+            target.style.zIndex = '1000';
+            const rect = target.getBoundingClientRect();
+            offsetY = event.clientY - rect
