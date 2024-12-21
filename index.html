@@ -171,7 +171,7 @@
     "for 🙏 so 💓 the 🌍,",
     "that he gave his only 🧒,",
     "that whosoever believeth in him",
-    "should not 🚫☠️",
+    "should 🚫☠️",
     "but have ♾️💓."
   ];
 
@@ -240,6 +240,8 @@
   }
 
   function setupInteract() {
+    let offsetY = 0;
+
     interact('#verseList li')
       .draggable({
         inertia: false,
@@ -252,22 +254,23 @@
         listeners: {
           start(event) {
             event.target.classList.add('dragging');
-            event.target.initialY = event.clientY;
+            const rect = event.target.getBoundingClientRect();
+            offsetY = event.clientY - rect.top;
           },
           move(event) {
             const target = event.target;
-            const deltaY = event.clientY - target.initialY;
-
-            // Update position directly to prevent drift
-            target.style.transform = `translateY(${deltaY}px)`;
-
             const listItems = Array.from(verseList.querySelectorAll('li'));
+            const topPosition = event.clientY - offsetY;
+
+            // Set the dragged element's position
+            target.style.transform = `translateY(${topPosition - target.offsetTop}px)`;
+
+            // Determine position to rearrange
             listItems.forEach((li) => {
               const rect = li.getBoundingClientRect();
               if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
                 const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
                 verseList.insertBefore(target, referenceNode);
-                target.initialY = event.clientY; // Reset initial position after rearranging
               }
             });
           },
@@ -275,7 +278,6 @@
             const target = event.target;
             target.classList.remove('dragging');
             target.style.transform = '';
-            delete target.initialY;
             checkOrder();
           }
         }
