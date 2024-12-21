@@ -53,7 +53,12 @@
     border-radius: 4px;
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-start;
+  }
+  .button-group {
+    display: flex;
+    gap: 5px;
+    margin-right: 10px;
   }
   .btn {
     background: #007BFF;
@@ -73,6 +78,14 @@
     font-weight: bold;
     font-size: 1.2em;
   }
+  .hidden {
+    display: none;
+  }
+  .timer {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 10px 0;
+  }
 </style>
 </head>
 <body>
@@ -84,13 +97,28 @@
 
 <section class="controls">
   <button class="btn" id="startBtn">Start Game</button>
+  <button class="btn hidden" id="hintBtn">Hint (+5 seconds)</button>
 </section>
 
+<div class="timer hidden" id="timer">Time: 0s</div>
 <section class="verse-container">
   <ul id="verseList"></ul>
 </section>
 
 <div id="result"></div>
+
+<section id="leaderboard" class="hidden">
+  <h3>Leaderboard</h3>
+  <ol></ol>
+</section>
+
+<section id="emailSignup" class="hidden">
+  <h3>Subscribe for Daily Puzzles</h3>
+  <form>
+    <input type="email" placeholder="Enter your email" required />
+    <button class="btn">Subscribe</button>
+  </form>
+</section>
 
 <footer>
   <p>&copy; 2024 Bible Emoji Game</p>
@@ -107,12 +135,31 @@
 
   const verseList = document.getElementById('verseList');
   const startBtn = document.getElementById('startBtn');
+  const hintBtn = document.getElementById('hintBtn');
   const result = document.getElementById('result');
+  const timerDisplay = document.getElementById('timer');
+  const leaderboard = document.getElementById('leaderboard');
+  const emailSignup = document.getElementById('emailSignup');
+
+  let timer = 0;
+  let timerInterval;
 
   startBtn.addEventListener('click', startGame);
+  hintBtn.addEventListener('click', giveHint);
 
   function startGame() {
     result.textContent = '';
+    leaderboard.classList.add('hidden');
+    emailSignup.classList.add('hidden');
+    hintBtn.classList.remove('hidden');
+    timerDisplay.classList.remove('hidden');
+    timer = 0;
+    updateTimer();
+
+    timerInterval = setInterval(() => {
+      timer++;
+      updateTimer();
+    }, 1000);
 
     const scrambledOrder = [...correctOrder].sort(() => Math.random() - 0.5);
 
@@ -121,9 +168,10 @@
       const li = document.createElement('li');
       li.dataset.index = index;
       li.innerHTML = `
-        <button class="btn move-up">⬆️</button>
+        <div class="button-group">
+          <button class="btn move-up">⬆️</button>
+        </div>
         <span>${line}</span>
-        <button class="btn move-down">⬇️</button>
       `;
       verseList.appendChild(li);
     });
@@ -133,7 +181,6 @@
 
   function setupButtons() {
     const upButtons = document.querySelectorAll('.move-up');
-    const downButtons = document.querySelectorAll('.move-down');
 
     upButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -145,17 +192,29 @@
         checkOrder();
       });
     });
+  }
 
-    downButtons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const li = btn.closest('li');
-        const next = li.nextElementSibling;
-        if (next) {
-          verseList.insertBefore(next, li);
-        }
+  function giveHint() {
+    for (let i = 0; i < verseList.children.length; i++) {
+      const currentLine = verseList.children[i];
+      const correctLine = correctOrder[i];
+
+      if (currentLine.querySelector('span').textContent !== correctLine) {
+        const correctLi = Array.from(verseList.children).find(
+          (li) => li.querySelector('span').textContent === correctLine
+        );
+
+        verseList.insertBefore(correctLi, currentLine);
+        timer += 5; // Add penalty
+        updateTimer();
         checkOrder();
-      });
-    });
+        break;
+      }
+    }
+  }
+
+  function updateTimer() {
+    timerDisplay.textContent = `Time: ${timer}s`;
   }
 
   function checkOrder() {
@@ -163,7 +222,11 @@
       .map((li) => li.querySelector('span').textContent);
 
     if (JSON.stringify(currentOrder) === JSON.stringify(correctOrder)) {
-      result.textContent = 'Congratulations! You solved the puzzle!';
+      clearInterval(timerInterval);
+      result.textContent = `Congratulations! You solved the puzzle in ${timer} seconds!`;
+      leaderboard.classList.remove('hidden');
+      emailSignup.classList.remove('hidden');
+      hintBtn.classList.add('hidden');
     } else {
       result.textContent = '';
     }
