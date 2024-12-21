@@ -34,12 +34,15 @@
     text-align: center;
     margin-bottom: 20px;
   }
-  .verse-container {
+  .verse-container, .completion-container {
     background: #fff;
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 20px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  }
+  .verse-container.hidden, .completion-container.hidden {
+    display: none;
   }
   .verse-container ul {
     list-style: none;
@@ -72,12 +75,6 @@
   .btn:hover {
     background: #0056b3;
   }
-  #result {
-    text-align: center;
-    margin-top: 20px;
-    font-weight: bold;
-    font-size: 1.2em;
-  }
   .hidden {
     display: none;
   }
@@ -92,37 +89,29 @@
 
 <header>
   <h1>Bible Verse Emoji Game</h1>
-  <h2>Rearrange the Lines to Reveal the Verse</h2>
+  <h2 id="gameInstructions">Try to get the best time by unscrambling the verse!</h2>
 </header>
 
-<section class="controls">
+<section class="controls" id="startScreen">
   <button class="btn" id="startBtn">Start Game</button>
-  <button class="btn hidden" id="hintBtn">Hint (+5 seconds)</button>
 </section>
 
 <div class="timer hidden" id="timer">Time: 0s</div>
-<section class="verse-container">
+
+<section class="verse-container hidden" id="gameArea">
   <ul id="verseList"></ul>
+  <div class="controls">
+    <button class="btn" id="hintBtn">Hint (+5 seconds)</button>
+  </div>
 </section>
 
-<div id="result"></div>
-
-<section id="leaderboard" class="hidden">
-  <h3>Leaderboard</h3>
-  <ol></ol>
+<section class="completion-container hidden" id="completionScreen">
+  <h2>Congratulations!</h2>
+  <p id="finalTime"></p>
+  <p>The correct verse is:</p>
+  <ul id="correctVerse"></ul>
+  <button class="btn" id="playAgainBtn">Play Again</button>
 </section>
-
-<section id="emailSignup" class="hidden">
-  <h3>Subscribe for Daily Puzzles</h3>
-  <form>
-    <input type="email" placeholder="Enter your email" required />
-    <button class="btn">Subscribe</button>
-  </form>
-</section>
-
-<footer>
-  <p>&copy; 2024 Bible Emoji Game</p>
-</footer>
 
 <script>
   const correctOrder = [
@@ -136,23 +125,26 @@
   const verseList = document.getElementById('verseList');
   const startBtn = document.getElementById('startBtn');
   const hintBtn = document.getElementById('hintBtn');
-  const result = document.getElementById('result');
   const timerDisplay = document.getElementById('timer');
-  const leaderboard = document.getElementById('leaderboard');
-  const emailSignup = document.getElementById('emailSignup');
+  const gameArea = document.getElementById('gameArea');
+  const startScreen = document.getElementById('startScreen');
+  const completionScreen = document.getElementById('completionScreen');
+  const finalTime = document.getElementById('finalTime');
+  const correctVerse = document.getElementById('correctVerse');
+  const playAgainBtn = document.getElementById('playAgainBtn');
 
   let timer = 0;
   let timerInterval;
 
   startBtn.addEventListener('click', startGame);
   hintBtn.addEventListener('click', giveHint);
+  playAgainBtn.addEventListener('click', resetGame);
 
   function startGame() {
-    result.textContent = '';
-    leaderboard.classList.add('hidden');
-    emailSignup.classList.add('hidden');
-    hintBtn.classList.remove('hidden');
+    startScreen.classList.add('hidden');
+    gameArea.classList.remove('hidden');
     timerDisplay.classList.remove('hidden');
+
     timer = 0;
     updateTimer();
 
@@ -164,9 +156,8 @@
     const scrambledOrder = [...correctOrder].sort(() => Math.random() - 0.5);
 
     verseList.innerHTML = '';
-    scrambledOrder.forEach((line, index) => {
+    scrambledOrder.forEach((line) => {
       const li = document.createElement('li');
-      li.dataset.index = index;
       li.innerHTML = `
         <div class="button-group">
           <button class="btn move-up">⬆️</button>
@@ -223,13 +214,27 @@
 
     if (JSON.stringify(currentOrder) === JSON.stringify(correctOrder)) {
       clearInterval(timerInterval);
-      result.textContent = `Congratulations! You solved the puzzle in ${timer} seconds!`;
-      leaderboard.classList.remove('hidden');
-      emailSignup.classList.remove('hidden');
-      hintBtn.classList.add('hidden');
-    } else {
-      result.textContent = '';
+      showCompletionScreen();
     }
+  }
+
+  function showCompletionScreen() {
+    gameArea.classList.add('hidden');
+    timerDisplay.classList.add('hidden');
+    completionScreen.classList.remove('hidden');
+
+    finalTime.textContent = `You solved the puzzle in ${timer} seconds!`;
+    correctVerse.innerHTML = '';
+    correctOrder.forEach((line) => {
+      const li = document.createElement('li');
+      li.textContent = line;
+      correctVerse.appendChild(li);
+    });
+  }
+
+  function resetGame() {
+    completionScreen.classList.add('hidden');
+    startScreen.classList.remove('hidden');
   }
 </script>
 
