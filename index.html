@@ -120,13 +120,16 @@
     <h3>Scrambled Lines</h3>
   </div>
   <div class="unscramble-box" id="unscrambleBox">
-    <h3>Unscramble Area</h3>
     <div class="slot" data-index="0"></div>
     <div class="slot" data-index="1"></div>
     <div class="slot" data-index="2"></div>
     <div class="slot" data-index="3"></div>
     <div class="slot" data-index="4"></div>
   </div>
+</section>
+
+<section class="controls hidden" id="resetControl">
+  <button class="btn" id="resetBtn">Reset Game</button>
 </section>
 
 <section class="completion-container hidden" id="completionScreen">
@@ -147,11 +150,13 @@
   ];
 
   const startBtn = document.getElementById('startBtn');
+  const resetBtn = document.getElementById('resetBtn');
   const scrambleBox = document.getElementById('scrambleBox');
   const unscrambleBox = document.getElementById('unscrambleBox');
   const timerDisplay = document.getElementById('timer');
   const gameArea = document.getElementById('gameArea');
   const startScreen = document.getElementById('startScreen');
+  const resetControl = document.getElementById('resetControl');
   const completionScreen = document.getElementById('completionScreen');
   const finalTime = document.getElementById('finalTime');
   const correctVerse = document.getElementById('correctVerse');
@@ -161,12 +166,14 @@
   let timerInterval;
 
   startBtn.addEventListener('click', startGame);
+  resetBtn.addEventListener('click', resetGame);
   playAgainBtn.addEventListener('click', resetGame);
 
   function startGame() {
     startScreen.classList.add('hidden');
     gameArea.classList.remove('hidden');
     timerDisplay.classList.remove('hidden');
+    resetControl.classList.remove('hidden');
 
     timer = 0;
     updateTimer();
@@ -176,7 +183,7 @@
       updateTimer();
     }, 1000);
 
-    const scrambledOrder = shuffle([...correctOrder]);
+    const scrambledOrder = shuffleWithoutCorrectPositions([...correctOrder]);
 
     scrambleBox.innerHTML = '';
     scrambledOrder.forEach((line) => {
@@ -190,8 +197,13 @@
     setupDragAndDrop();
   }
 
-  function shuffle(array) {
-    return array.sort(() => Math.random() - 0.5);
+  function shuffleWithoutCorrectPositions(array) {
+    let isDeranged;
+    do {
+      array.sort(() => Math.random() - 0.5);
+      isDeranged = array.every((line, index) => line !== correctOrder[index]);
+    } while (!isDeranged);
+    return array;
   }
 
   function setupDragAndDrop() {
@@ -215,11 +227,22 @@
 
       slot.addEventListener('drop', (e) => {
         const draggingElement = document.querySelector('.dragging');
-        if (draggingElement && !slot.firstChild) {
+        if (draggingElement) {
           slot.appendChild(draggingElement);
           checkOrder();
         }
       });
+    });
+
+    scrambleBox.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+
+    scrambleBox.addEventListener('drop', (e) => {
+      const draggingElement = document.querySelector('.dragging');
+      if (draggingElement) {
+        scrambleBox.appendChild(draggingElement);
+      }
     });
   }
 
@@ -240,6 +263,7 @@
   function showCompletionScreen() {
     gameArea.classList.add('hidden');
     timerDisplay.classList.add('hidden');
+    resetControl.classList.add('hidden');
     completionScreen.classList.remove('hidden');
 
     finalTime.textContent = `You solved the puzzle in ${timer} seconds!`;
@@ -252,7 +276,12 @@
   }
 
   function resetGame() {
+    clearInterval(timerInterval);
+    timer = 0;
+    updateTimer();
     completionScreen.classList.add('hidden');
+    gameArea.classList.add('hidden');
+    resetControl.classList.add('hidden');
     startScreen.classList.remove('hidden');
   }
 </script>
