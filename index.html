@@ -262,16 +262,18 @@
             const listItems = Array.from(verseList.querySelectorAll('li'));
             const topPosition = event.clientY - offsetY;
 
-            // Set the dragged element's position
-            target.style.transform = `translateY(${topPosition - target.offsetTop}px)`;
+            // Smooth movement with minimal reflows
+            requestAnimationFrame(() => {
+              target.style.transform = `translateY(${topPosition - target.offsetTop}px)`;
 
-            // Determine position to rearrange
-            listItems.forEach((li) => {
-              const rect = li.getBoundingClientRect();
-              if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
-                const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
-                verseList.insertBefore(target, referenceNode);
-              }
+              // Determine position to rearrange
+              listItems.forEach((li) => {
+                const rect = li.getBoundingClientRect();
+                if (target !== li && event.clientY > rect.top && event.clientY < rect.bottom) {
+                  const referenceNode = event.clientY < rect.top + rect.height / 2 ? li : li.nextSibling;
+                  verseList.insertBefore(target, referenceNode);
+                }
+              });
             });
           },
           end(event) {
