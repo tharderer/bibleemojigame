@@ -1,3 +1,5 @@
+import { saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
+
 const correctOrder = [
   "for 🙏 so 💓 the 🌍,",
   "that he gave his only 🧒,",
@@ -14,7 +16,7 @@ const gameArea = document.getElementById('gameArea');
 const startScreen = document.getElementById('startScreen');
 const completionScreen = document.getElementById('completionScreen');
 const finalTime = document.getElementById('finalTime');
-const correctVerse = document.getElementById('correctVerse');
+const leaderboardSection = document.getElementById('leaderboardSection');
 const playAgainBtn = document.getElementById('playAgainBtn');
 
 let timer = 0;
@@ -33,9 +35,9 @@ function startGame() {
 }
 
 function initializeGame() {
-  clearInterval(timerInterval); // Clear previous timer if any
-  timer = 0; // Reset timer to 0
-  updateTimer(); // Immediately show reset timer
+  clearInterval(timerInterval);
+  timer = 0;
+  updateTimer();
   scrambleBox.innerHTML = '';
   unscrambleBox.querySelectorAll('.slot').forEach((slot) => {
     slot.innerHTML = '';
@@ -63,7 +65,7 @@ function shuffleWithoutCorrectPositions(array) {
 }
 
 function setupInteractDrag() {
-  interact('.draggable').unset(); // Clear previous listeners if any
+  interact('.draggable').unset();
 
   interact('.draggable').draggable({
     inertia: true,
@@ -86,7 +88,7 @@ function setupInteractDrag() {
     }
   });
 
-  interact('.slot').unset(); // Clear previous listeners if any
+  interact('.slot').unset();
 
   interact('.slot').dropzone({
     accept: '.draggable',
@@ -110,13 +112,13 @@ function checkOrder() {
   const currentOrder = Array.from(slots).map((slot) => slot.textContent.trim());
 
   if (JSON.stringify(currentOrder) === JSON.stringify(correctOrder)) {
-    clearInterval(timerInterval); // Stop timer
+    clearInterval(timerInterval);
     showCompletionScreen();
   }
 }
 
 function startTimer() {
-  clearInterval(timerInterval); // Prevent multiple timers
+  clearInterval(timerInterval);
   timerInterval = setInterval(() => {
     timer++;
     updateTimer();
@@ -139,13 +141,21 @@ function showCompletionScreen() {
     li.textContent = line;
     correctVerse.appendChild(li);
   });
+
+  const playerName = prompt('Enter your name for the leaderboard:');
+  if (playerName) {
+    saveTimeToLeaderboard(playerName, timer).then(() => {
+      fetchLeaderboard().then((data) => updateLeaderboard(data));
+    });
+  }
+
+  fetchLeaderboard().then((data) => updateLeaderboard(data));
 }
 
 function resetGame() {
-  clearInterval(timerInterval); // Clear the timer
-  initializeGame(); // Reinitialize the game
+  initializeGame();
   completionScreen.classList.add('hidden');
   gameArea.classList.remove('hidden');
   timerDisplay.classList.remove('hidden');
-  startTimer(); // Start a fresh timer
+  startTimer();
 }
