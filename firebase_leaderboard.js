@@ -2,8 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { getFirestore, collection, addDoc, query, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
-
-  const firebaseConfig = {
+const firebaseConfig = {
     apiKey: "AIzaSyDxjy9pqeA-JGYEB0mHdtkPwW5Ie8vjYeQ",
     authDomain: "bible-verse-emoji-game.firebaseapp.com",
     projectId: "bible-verse-emoji-game",
