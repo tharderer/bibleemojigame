@@ -1,5 +1,5 @@
 import { saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
-
+import { signUp, logIn, logOut } from './firebase_leaderboard.js';
 const correctOrder = [
   "for 🙏 so 💓 the 🌍,",
   "that he gave his only 🧒,",
@@ -7,7 +7,9 @@ const correctOrder = [
   "should 🚫☠️",
   "but have ♾️💓."
 ];
-
+const signUpForm = document.getElementById('signUpForm');
+const logInForm = document.getElementById('logInForm');
+const logOutButton = document.getElementById('logOutButton');
 const startBtn = document.getElementById('startBtn');
 const scrambleBox = document.getElementById('scrambleBox');
 const unscrambleBox = document.getElementById('unscrambleBox');
@@ -25,7 +27,45 @@ let timerInterval;
 
 startBtn.addEventListener('click', startGame);
 playAgainBtn.addEventListener('click', resetGame);
+signUpForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const email = document.getElementById('signUpEmail').value;
+  const password = document.getElementById('signUpPassword').value;
 
+  try {
+    const user = await signUp(email, password);
+    alert(`Signed up as ${user.email}`);
+    logOutButton.classList.remove('hidden');
+  } catch (error) {
+    alert("Error signing up: " + error.message);
+  }
+});
+
+// Handle Log In
+logInForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const email = document.getElementById('logInEmail').value;
+  const password = document.getElementById('logInPassword').value;
+
+  try {
+    const user = await logIn(email, password);
+    alert(`Logged in as ${user.email}`);
+    logOutButton.classList.remove('hidden');
+  } catch (error) {
+    alert("Error logging in: " + error.message);
+  }
+});
+
+// Handle Log Out
+logOutButton.addEventListener('click', async () => {
+  try {
+    await logOut();
+    alert("Logged out");
+    logOutButton.classList.add('hidden');
+  } catch (error) {
+    alert("Error logging out: " + error.message);
+  }
+});
 function startGame() {
   initializeGame();
   startScreen.classList.add('hidden');
