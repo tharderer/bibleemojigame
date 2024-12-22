@@ -26,6 +26,7 @@ startBtn.addEventListener('click', startGame);
 playAgainBtn.addEventListener('click', resetGame);
 
 function startGame() {
+  console.log('Start button clicked');
   initializeGame();
   startScreen.classList.add('hidden');
   gameArea.classList.remove('hidden');
