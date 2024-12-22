@@ -2,20 +2,20 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
 import { getFirestore, collection, addDoc, query, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-firestore.js";
 
-// Your Firebase configuration
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT_ID.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID",
-};
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+  const firebaseConfig = {
+    apiKey: "AIzaSyDxjy9pqeA-JGYEB0mHdtkPwW5Ie8vjYeQ",
+    authDomain: "bible-verse-emoji-game.firebaseapp.com",
+    projectId: "bible-verse-emoji-game",
+    storageBucket: "bible-verse-emoji-game.firebasestorage.app",
+    messagingSenderId: "781380545410",
+    appId: "1:781380545410:web:d024acf9b3e8b8f10dfd9b",
+    measurementId: "G-0NWQ5V6EHT"
+  };
 
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+  const analytics = getAnalytics(app);
 /**
  * Save player's time to the leaderboard.
  * @param {string} playerName - Name of the player.
