@@ -1,6 +1,7 @@
 // Import Firebase modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-app.js";
 import { getFirestore, collection, addDoc, query, getDocs, orderBy, limit } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
 
 // Your Firebase configuration
 const firebaseConfig = {
@@ -16,13 +17,43 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
-
+const auth = getAuth(app);
 // Firestore Functions
 /**
  * Save player's time to the leaderboard
  * @param {string} playerName - Name of the player
  * @param {number} time - Player's time
  */
+export async function signUp(email, password) {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    console.log("User signed up:", userCredential.user);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Error signing up:", error);
+    throw error;
+  }
+}
+export async function logIn(email, password) {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    console.log("User logged in:", userCredential.user);
+    return userCredential.user;
+  } catch (error) {
+    console.error("Error logging in:", error);
+    throw error;
+  }
+}
+export async function logOut() {
+  try {
+    await signOut(auth);
+    console.log("User logged out");
+  } catch (error) {
+    console.error("Error logging out:", error);
+    throw error;
+  }
+}
+
 export async function saveTimeToLeaderboard(playerName, time) {
   try {
     await addDoc(collection(db, 'leaderboard'), {
