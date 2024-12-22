@@ -11,19 +11,6 @@ const correctOrder = [
 const startBtn = document.getElementById('startBtn');
 const scrambleBox = document.getElementById('scrambleBox');
 const unscrambleBox = document.getElementById('unscrambleBox');
-const timerDisplay = document.getElementById('timer');import { saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
-
-const correctOrder = [
-  "for 🙏 so 💓 the 🌍,",
-  "that he gave his only 🧒,",
-  "that whosoever believeth in him",
-  "should 🚫☠️",
-  "but have ♾️💓."
-];
-
-const startBtn = document.getElementById('startBtn');
-const scrambleBox = document.getElementById('scrambleBox');
-const unscrambleBox = document.getElementById('unscrambleBox');
 const timerDisplay = document.getElementById('timer');
 const gameArea = document.getElementById('gameArea');
 const startScreen = document.getElementById('startScreen');
