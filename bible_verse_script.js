@@ -66,6 +66,8 @@ function shuffleWithoutCorrectPositions(array) {
 }
 
 function setupInteractDrag() {
+  interact('.draggable').unset(); // Clear previous listeners if any
+
   interact('.draggable').draggable({
     inertia: true,
     listeners: {
@@ -86,6 +88,8 @@ function setupInteractDrag() {
       }
     }
   });
+
+  interact('.slot').unset(); // Clear previous listeners if any
 
   interact('.slot').dropzone({
     accept: '.draggable',
