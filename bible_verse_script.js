@@ -29,14 +29,11 @@ function startGame() {
   gameArea.classList.remove('hidden');
   timerDisplay.classList.remove('hidden');
 
-  timerInterval = setInterval(() => {
-    timer++;
-    updateTimer();
-  }, 1000);
+  startTimer();
 }
 
 function initializeGame() {
-  clearInterval(timerInterval);
+  clearInterval(timerInterval); // Clear previous timer if any
   timer = 0;
   updateTimer();
   scrambleBox.innerHTML = '';
@@ -118,6 +115,14 @@ function checkOrder() {
   }
 }
 
+function startTimer() {
+  clearInterval(timerInterval); // Ensure no overlapping intervals
+  timerInterval = setInterval(() => {
+    timer++;
+    updateTimer();
+  }, 1000);
+}
+
 function updateTimer() {
   timerDisplay.textContent = `Time: ${timer}s`;
 }
@@ -141,4 +146,5 @@ function resetGame() {
   completionScreen.classList.add('hidden');
   gameArea.classList.remove('hidden');
   timerDisplay.classList.remove('hidden');
+  startTimer(); // Restart the timer
 }
