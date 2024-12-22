@@ -34,8 +34,8 @@ function startGame() {
 
 function initializeGame() {
   clearInterval(timerInterval); // Clear previous timer if any
-  timer = 0;
-  updateTimer();
+  timer = 0; // Reset timer to 0
+  updateTimer(); // Immediately show reset timer
   scrambleBox.innerHTML = '';
   unscrambleBox.querySelectorAll('.slot').forEach((slot) => {
     slot.innerHTML = '';
@@ -110,13 +110,13 @@ function checkOrder() {
   const currentOrder = Array.from(slots).map((slot) => slot.textContent.trim());
 
   if (JSON.stringify(currentOrder) === JSON.stringify(correctOrder)) {
-    clearInterval(timerInterval);
+    clearInterval(timerInterval); // Stop timer
     showCompletionScreen();
   }
 }
 
 function startTimer() {
-  clearInterval(timerInterval); // Ensure no overlapping intervals
+  clearInterval(timerInterval); // Prevent multiple timers
   timerInterval = setInterval(() => {
     timer++;
     updateTimer();
@@ -142,9 +142,10 @@ function showCompletionScreen() {
 }
 
 function resetGame() {
-  initializeGame();
+  clearInterval(timerInterval); // Clear the timer
+  initializeGame(); // Reinitialize the game
   completionScreen.classList.add('hidden');
   gameArea.classList.remove('hidden');
   timerDisplay.classList.remove('hidden');
-  startTimer(); // Restart the timer
+  startTimer(); // Start a fresh timer
 }
