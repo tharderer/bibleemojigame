@@ -54,17 +54,18 @@ export async function logOut() {
   }
 }
 
-export async function saveTimeToLeaderboard(playerName, time) {
+export async function saveTimeToLeaderboard(username, time) {
   try {
     await addDoc(collection(db, 'leaderboard'), {
-      name: playerName,
-      time: time,
-      timestamp: new Date(),
+      username: username, // Store username
+      time: time,         // Store the player's time
+      timestamp: new Date(), // Optional: for future sorting if needed
     });
   } catch (error) {
     console.error('Error saving time:', error);
   }
 }
+
 
 /**
  * Fetch the leaderboard data
