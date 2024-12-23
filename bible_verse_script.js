@@ -1,5 +1,6 @@
 import { signUp, logIn, saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
 import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+import { doc, setDoc } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-firestore.js";
 
 const auth = getAuth(app);
 const correctOrder = [
@@ -33,6 +34,29 @@ let currentUsername = null;
 
 startBtn.addEventListener('click', startGame);
 playAgainBtn.addEventListener('click', resetGame);
+
+setUsernameForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const username = document.getElementById('usernameInput').value;
+
+  if (username) {
+    try {
+      // Save the username locally for this session
+      currentUsername = username;
+
+      // Save the username to Firestore
+      await saveUsernameToFirestore(auth.currentUser.uid, username);
+
+      // Notify the user
+      alert(`Username saved as: ${username}`);
+      document.getElementById('setUsernamePrompt').classList.add('hidden'); // Hide username prompt
+    } catch (error) {
+      console.error('Error setting username:', error);
+      alert('Failed to set username. Please try again.');
+    }
+  }
+});
+
 document.getElementById('signUpForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = document.getElementById('signUpEmail').value;
