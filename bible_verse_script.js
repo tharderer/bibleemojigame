@@ -1,5 +1,7 @@
-import { saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
-import { signUp, logIn, logOut } from './firebase_leaderboard.js';
+import { signUp, logIn, saveTimeToLeaderboard, fetchLeaderboard, updateLeaderboard } from './firebase_leaderboard.js';
+import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.1.0/firebase-auth.js";
+
+const auth = getAuth(app);
 const correctOrder = [
   "for 🙏 so 💓 the 🌍,",
   "that he gave his only 🧒,",
@@ -27,45 +29,45 @@ let timerInterval;
 
 startBtn.addEventListener('click', startGame);
 playAgainBtn.addEventListener('click', resetGame);
-signUpForm.addEventListener('submit', async (event) => {
+document.getElementById('signUpForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = document.getElementById('signUpEmail').value;
   const password = document.getElementById('signUpPassword').value;
 
   try {
-    const user = await signUp(email, password);
-    alert(`Signed up as ${user.email}`);
-    logOutButton.classList.remove('hidden');
+    await signUp(email, password);
+    alert('Sign-up successful! Your score will be saved.');
+    document.getElementById('authPrompt').classList.add('hidden'); // Hide auth prompt
+    saveScoreAfterAuth(); // Save score
   } catch (error) {
-    alert("Error signing up: " + error.message);
+    alert(`Error signing up: ${error.message}`);
   }
 });
 
-// Handle Log In
-logInForm.addEventListener('submit', async (event) => {
+document.getElementById('logInForm').addEventListener('submit', async (event) => {
   event.preventDefault();
   const email = document.getElementById('logInEmail').value;
   const password = document.getElementById('logInPassword').value;
 
   try {
-    const user = await logIn(email, password);
-    alert(`Logged in as ${user.email}`);
-    logOutButton.classList.remove('hidden');
+    await logIn(email, password);
+    alert('Log-in successful! Your score will be saved.');
+    document.getElementById('authPrompt').classList.add('hidden'); // Hide auth prompt
+    saveScoreAfterAuth(); // Save score
   } catch (error) {
-    alert("Error logging in: " + error.message);
+    alert(`Error logging in: ${error.message}`);
   }
 });
 
-// Handle Log Out
-logOutButton.addEventListener('click', async () => {
-  try {
-    await logOut();
-    alert("Logged out");
-    logOutButton.classList.add('hidden');
-  } catch (error) {
-    alert("Error logging out: " + error.message);
+// Function to save the player's score after authentication
+function saveScoreAfterAuth() {
+  if (auth.currentUser) {
+    saveTimeToLeaderboard(auth.currentUser.email, timer).then(() => {
+      fetchLeaderboard().then((data) => updateLeaderboard(data));
+      leaderboardSection.classList.remove('hidden'); // Show leaderboard
+    });
   }
-});
+}
 function startGame() {
   initializeGame();
   startScreen.classList.add('hidden');
