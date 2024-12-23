@@ -23,9 +23,13 @@ const finalTime = document.getElementById('finalTime');
 const leaderboardSection = document.getElementById('leaderboardSection');
 const playAgainBtn = document.getElementById('playAgainBtn');
 const leaderboardList = document.getElementById('leaderboard');
+const setUsernameForm = document.getElementById('setUsernameForm');
 
 let timer = 0;
 let timerInterval;
+// Global variable to store the current username
+let currentUsername = null;
+
 
 startBtn.addEventListener('click', startGame);
 playAgainBtn.addEventListener('click', resetGame);
