@@ -171,27 +171,27 @@ function updateTimer() {
 }
 
 function showCompletionScreen() {
+  // Hide the game area and show the completion screen
   gameArea.classList.add('hidden');
   timerDisplay.classList.add('hidden');
   completionScreen.classList.remove('hidden');
 
+  // Display the final time
   finalTime.textContent = `You solved the puzzle in ${timer} seconds!`;
 
-  const playerName = prompt('Enter your name for the leaderboard:');
-  if (playerName) {
-    saveTimeToLeaderboard(playerName, timer).then(() => {
-      fetchLeaderboard().then((data) => {
-        updateLeaderboard(data);
-        leaderboardSection.classList.remove('hidden'); // Show the leaderboard
-      });
+  // Check if the user is logged in
+  if (auth.currentUser) {
+    // Save the score directly if the user is logged in
+    saveTimeToLeaderboard(auth.currentUser.email, timer).then(() => {
+      fetchLeaderboard().then((data) => updateLeaderboard(data));
+      leaderboardSection.classList.remove('hidden'); // Show leaderboard
     });
   } else {
-    fetchLeaderboard().then((data) => {
-      updateLeaderboard(data);
-      leaderboardSection.classList.remove('hidden');
-    });
+    // Show sign-up/login prompt if the user is not logged in
+    document.getElementById('authPrompt').classList.remove('hidden');
   }
 }
+
 
 function resetGame() {
   initializeGame();
