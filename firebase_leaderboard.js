@@ -66,6 +66,17 @@ export async function saveTimeToLeaderboard(username, time) {
   }
 }
 
+// Save the username to Firestore
+async function saveUsernameToFirestore(userId, username) {
+  try {
+    const userDocRef = doc(db, 'users', userId); // 'users' collection with userId as the document ID
+    await setDoc(userDocRef, { username: username }, { merge: true });
+    console.log('Username saved to Firestore');
+  } catch (error) {
+    console.error('Error saving username to Firestore:', error);
+    throw error;
+  }
+}
 
 /**
  * Fetch the leaderboard data
@@ -83,6 +94,7 @@ export async function fetchLeaderboard() {
     return [];
   }
 }
+
 
 /**
  * Update the leaderboard in the DOM
