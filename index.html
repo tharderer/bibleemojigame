@@ -12,21 +12,23 @@
   <h1>Bible Verse Emoji Game</h1>
   <h2 id="gameInstructions">Drag and drop the lines to their correct positions!</h2>
 </header>
-<section id="authSection">
-  <h2>Authentication</h2>
+<div id="authPrompt" class="hidden">
+  <h3>Sign up or Log in to Save Your Score</h3>
   <form id="signUpForm">
-    <h3>Sign Up</h3>
+    <h4>Sign Up</h4>
     <input type="email" id="signUpEmail" placeholder="Email" required />
     <input type="password" id="signUpPassword" placeholder="Password" required />
     <button type="submit">Sign Up</button>
   </form>
 
   <form id="logInForm">
-    <h3>Log In</h3>
+    <h4>Log In</h4>
     <input type="email" id="logInEmail" placeholder="Email" required />
     <input type="password" id="logInPassword" placeholder="Password" required />
     <button type="submit">Log In</button>
   </form>
+</div>
+
 
   <button id="logOutButton" class="hidden">Log Out</button>
 </section>
